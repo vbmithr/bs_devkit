@@ -1,0 +1,27 @@
+opam-version: "1.2"
+maintainer: "Vincent Bernardoff <vb@luminar.eu.org>"
+authors: ["Vincent Bernardoff <vb@luminar.eu.org>"]
+homepage: "https://github.com/vbmithr/bs_devkit"
+doc: "https://vbmithr.github.io/bs_devkit/doc"
+license: "ISC"
+dev-repo: "https://github.com/vbmithr/bs_devkit.git"
+bug-reports: "https://github.com/vbmithr/bs_devkit/issues"
+tags: []
+available: [ ocaml-version >= "4.01.0"]
+depends: [
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "topkg" {build}
+  "core"
+  "async"
+  "cohttp"
+  "uuidm"
+  "ppx_deriving"
+  "ppx_deriving_yojson"
+  "ppx_sexp_conv"
+  "ppx_bin_prot"
+]
+depopts: []
+build:
+[[ "ocaml" "pkg/pkg.ml" "build"
+           "--pinned" "%{pinned}%" ]]

@@ -1,0 +1,7 @@
+description = "Devkit for bitsouk and other bitcoin related projects"
+version = "%%VERSION%%"
+requires = "core async cohttp cstruct uuidm ppx_deriving.std ppx_deriving_yojson ppx_sexp_conv ppx_bin_prot"
+archive(byte) = "bs_devkit_core.cma bs_devkit.cma"
+archive(native) = "bs_devkit_core.cmxa bs_devkit.cmxa"
+plugin(byte) = "bs_devkit_core.cma bs_devkit.cma"
+plugin(native) = "bs_devkit_core.cmxs bs_devkit.cmxs"

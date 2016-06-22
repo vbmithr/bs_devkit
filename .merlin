@@ -1,0 +1,15 @@
+PKG bytes
+PKG core
+PKG async
+PKG cohttp.async
+PKG yojson
+PKG uuidm
+
+PKG ppx_sexp_conv
+PKG ppx_bin_prot
+PKG ppx_deriving.std
+PKG ppx_deriving_yojson
+
+S src
+S test
+B _build/**
