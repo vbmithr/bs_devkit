@@ -131,9 +131,10 @@ let loglevel_of_int = function 2 -> `Info | 3 -> `Debug | _ -> `Error
 let robust_int_of_float_exn (type t) (module I : Int_intf.S with type t = t) precision f =
   let s = Printf.sprintf "%.*f" precision f in
   let i = String.index_exn s '.' in
+  let op = if String.get s 0 = '-' then I.(-) else I.(+) in
   let a = I.of_string @@ String.sub s 0 i in
   let b = I.of_string @@ String.sub s (i+1) (String.length s - i - 1) in
-  I.(b + a * (pow (of_int_exn 10) (of_int_exn precision)))
+  I.(op (a * (pow (of_int_exn 10) (of_int_exn precision))) b)
 
 let satoshis_of_float_exn = robust_int_of_float_exn (module Int64) 8
 let satoshis_int_of_float_exn = robust_int_of_float_exn (module Int) 8
