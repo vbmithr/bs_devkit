@@ -194,16 +194,6 @@ let vwap side ?(vlimit=Int.max_value) =
   let fold = Int.Map.(match side with Side.Bid -> fold_right | Ask -> fold) in
   fold ~init:(0, 0) ~f:fold_f
 
-module Cfg = struct
-  type cfg = {
-    key: string;
-    secret: string;
-    quote: (string * int) list [@default []];
-  } [@@deriving yojson]
-
-  type t = (string * cfg) list [@@deriving yojson]
-end
-
 let presult_exn = function
   | `Ok a -> a
   | `Error msg -> invalid_arg msg
