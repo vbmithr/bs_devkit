@@ -188,7 +188,7 @@ let vwap side ?(vlimit=Int.max_value) =
   let fold_f ~key:p ~data:v (vwap, vol) =
     if vol >= vlimit then (vwap, vol)
     else
-      let v = min v (vlimit - vol) in
+      let v = Int.min v (vlimit - vol) in
       vwap + p * v, vol + v
   in
   let fold = Int.Map.(match side with Side.Bid -> fold_right | Ask -> fold) in
