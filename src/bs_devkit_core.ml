@@ -158,27 +158,24 @@ let eat_exn ?log ?on_exn f =
     | Some f -> f exn
 
 module rec Side : sig
-  type t = Bid | Ask [@@deriving show, bin_io]
+  type t = Bid | Ask [@@deriving sexp,bin_io]
   val other : t -> t
   val of_buyorsell : BuyOrSell.t -> t
 end = struct
-  type t =
-    | Bid [@printer fun fmt _ -> Format.pp_print_string fmt "Bid"]
-    | Ask [@printer fun fmt _ -> Format.pp_print_string fmt "Ask"]
-    [@@deriving show, bin_io]
+  type t = Bid | Ask [@@deriving sexp,bin_io]
 
   let other = function Bid -> Ask | Ask -> Bid
   let of_buyorsell = function BuyOrSell.Buy -> Bid | Sell -> Ask
 end
 and BuyOrSell : sig
-  type t = Buy | Sell [@@deriving show, bin_io]
+  type t = Buy | Sell [@@deriving sexp,bin_io]
   val other : t -> t
   val of_side : Side.t -> t
 end = struct
   type t =
-    | Buy [@printer fun fmt _ -> Format.pp_print_string fmt "Buy"]
-    | Sell [@printer fun fmt _ -> Format.pp_print_string fmt "Sell"]
-    [@@deriving show, bin_io]
+    | Buy
+    | Sell
+    [@@deriving sexp,bin_io]
 
   let other = function Buy -> Sell | Sell -> Buy
   let of_side = function Side.Bid -> Buy | Ask -> Sell
