@@ -200,3 +200,19 @@ module Cfg = struct
 
   type t = (string * cfg) list [@@deriving yojson]
 end
+
+module OB = struct
+  type action = Partial | Insert | Update | Delete [@@deriving sexp, bin_io]
+
+  type update = {
+    id: int;
+    side: Side.t;
+    price: int [@default 0]; (* in satoshis *)
+    size: int [@default 0] (* in contracts or in tick size *);
+  } [@@deriving create, sexp, bin_io]
+
+  type t = {
+    action: action;
+    data: update;
+  } [@@deriving create, sexp, bin_io]
+end
