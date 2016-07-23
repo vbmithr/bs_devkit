@@ -149,13 +149,13 @@ let maybe_info log k = Printf.ksprintf (fun msg -> Option.iter log ~f:(fun log -
 let maybe_error log k = Printf.ksprintf (fun msg -> Option.iter log ~f:(fun log -> Log.error log "%s" msg)) k
 
 let eat_exn ?log ?on_exn f =
-  try_with f >>= function
+  Monitor.try_with_or_error f >>= function
   | Ok () -> Deferred.unit
-  | Error exn ->
-    maybe_error log "%s" Exn.(backtrace ());
+  | Error err ->
+    maybe_error log "%s" Error.(to_string_hum err);
     match on_exn with
     | None -> Deferred.unit
-    | Some f -> f exn
+    | Some f -> Error.to_exn err |> Monitor.extract_exn |> f
 
 module rec Side : sig
   type t = Bid | Ask [@@deriving sexp,bin_io]
