@@ -15,12 +15,12 @@ depends: [
   "topkg" {build}
   "core"
   "async"
-  "cohttp"
   "uuidm"
   "ppx_deriving"
   "ppx_deriving_yojson"
   "ppx_sexp_conv"
   "ppx_bin_prot"
+  "leveldb"
 ]
 depopts: []
 build:

@@ -1,8 +1,6 @@
 open Core.Std
 open Async.Std
 
-open Cohttp_async
-
 module Writer = struct
   include Writer
   let write_cstruct w cs =
@@ -110,16 +108,6 @@ module RespObj = struct
         )
 end
 
-let b64_of_uuid uuid_str =
-  match Uuidm.of_string uuid_str with
-  | None -> invalid_arg "Uuidm.of_string"
-  | Some uuid -> Uuidm.to_bytes uuid |> B64.encode
-
-let uuid_of_b64 b64 =
-  B64.decode b64 |> Uuidm.of_bytes |> function
-  | None -> invalid_arg "uuid_of_b64"
-  | Some uuid -> Uuidm.to_string uuid
-
 let add_suffix fn ~suffix =
   let open Filename in
   match split_extension fn with main_part, extension ->
@@ -215,4 +203,35 @@ module OB = struct
     action: action;
     data: update;
   } [@@deriving create, sexp, bin_io]
+end
+
+module DB = struct
+  type book_entry = {
+    side: Side.t;
+    price: int;
+    qty: int;
+  } [@@deriving create, sexp, bin_io]
+
+  type trade = {
+    ts: Time_ns.t;
+    side: BuyOrSell.t;
+    price: int; (* in satoshis *)
+    qty: int; (* in satoshis *)
+  } [@@deriving create, sexp, bin_io]
+
+  type event =
+    | BModify of book_entry
+    | BRemove of book_entry
+    | Trade of trade [@@deriving sexp, bin_io]
+
+  type t = event list [@@deriving sexp, bin_io]
+
+  let make_store ?sync ?buf db =
+    let key = String.create 8 in
+    let value = Option.value buf ~default:(Bigstring.create 4096) in
+    fun ?(buf=value) seq evts ->
+      Binary_packing.pack_signed_64_int_big_endian ~buf:key ~pos:0 seq;
+      let endp = bin_write_t buf ~pos:0 evts in
+      let value = Bigstring.To_string.sub buf 0 endp in
+      LevelDB.put ?sync db key value
 end

@@ -4,6 +4,7 @@ PKG async
 PKG cohttp.async
 PKG yojson
 PKG uuidm
+PKG leveldb
 
 PKG ppx_sexp_conv
 PKG ppx_bin_prot
