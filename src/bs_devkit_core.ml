@@ -183,6 +183,7 @@ module Cfg = struct
   type cfg = {
     key: string;
     secret: string;
+    passphrase: string [@default ""];
     quote: (string * int) list [@default []];
   } [@@deriving yojson]
 
