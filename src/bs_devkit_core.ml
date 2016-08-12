@@ -1,5 +1,6 @@
 open Core.Std
 open Async.Std
+open Dtc
 
 module Writer = struct
   include Writer
@@ -145,14 +146,6 @@ let eat_exn ?log ?on_exn f =
     | None -> Deferred.unit
     | Some f -> Error.to_exn err |> Monitor.extract_exn |> f
 
-module Side : sig
-  type t = Buy | Sell [@@deriving sexp,bin_io]
-  val other : t -> t
-end = struct
-  type t = Buy | Sell [@@deriving sexp,bin_io]
-  let other = function Buy -> Sell | Sell -> Buy
-end
-
 let vwap side ?(vlimit=Int.max_value) =
   let fold_f ~key:p ~data:v (vwap, vol) =
     if vol >= vlimit then (vwap, vol)
@@ -160,7 +153,7 @@ let vwap side ?(vlimit=Int.max_value) =
       let v = Int.min v (vlimit - vol) in
       vwap + p * v, vol + v
   in
-  let fold = Int.Map.(match side with Side.Buy -> fold_right | Sell -> fold) in
+  let fold = Int.Map.(match side with Dtc.Buy -> fold_right | Sell -> fold) in
   fold ~init:(0, 0) ~f:fold_f
 
 module Cfg = struct
@@ -179,7 +172,7 @@ module OB = struct
 
   type update = {
     id: int;
-    side: Side.t;
+    side: Dtc.side;
     price: int [@default 0]; (* in satoshis *)
     size: int [@default 0] (* in contracts or in tick size *);
   } [@@deriving create, sexp, bin_io]
@@ -192,14 +185,14 @@ end
 
 module DB = struct
   type book_entry = {
-    side: Side.t;
+    side: Dtc.side;
     price: int;
     qty: int;
   } [@@deriving create, sexp, bin_io]
 
   type trade = {
     ts: Time_ns.t;
-    side: Side.t;
+    side: Dtc.side;
     price: int; (* in satoshis *)
     qty: int; (* in satoshis *)
   } [@@deriving create, sexp, bin_io]
