@@ -211,8 +211,8 @@ module DB = struct
     fun ?sync db seq evts ->
       Bigbuffer.clear buf;
       Binary_packing.pack_signed_64_int_big_endian ~buf:key ~pos:0 seq;
-      let nb_of_evts = List.length evts in
-      let nb_written = Bin_prot.Utils.bin_write_size_header scratch ~pos:0 nb_of_evts in
+      let nb_of_evts = List.length evts |> Bin_prot.Nat0.of_int in
+      let nb_written = Bin_prot.Write.bin_write_nat0 scratch ~pos:0 nb_of_evts in
       let scratch_shared = Bigstring.sub_shared scratch ~len:nb_written in
       Bigbuffer.add_bigstring buf scratch_shared;
       List.iter evts ~f:begin fun e ->
