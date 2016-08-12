@@ -220,19 +220,28 @@ module DB = struct
     qty: int; (* in satoshis *)
   } [@@deriving create, sexp, bin_io]
 
-  type event =
+  type t =
     | BModify of book_entry
     | BRemove of book_entry
     | Trade of trade [@@deriving sexp, bin_io]
 
-  type t = event list [@@deriving sexp, bin_io]
+  type t_list = t list [@@deriving sexp, bin_io]
 
-  let make_store ?sync ?buf db =
+  let make_store () =
     let key = String.create 8 in
-    let value = Option.value buf ~default:(Bigstring.create 4096) in
-    fun ?(buf=value) seq evts ->
+    let buf = Bigbuffer.create 128 in
+    let scratch = Bigstring.create 128 in
+    fun ?sync db seq evts ->
+      Bigbuffer.clear buf;
       Binary_packing.pack_signed_64_int_big_endian ~buf:key ~pos:0 seq;
-      let endp = bin_write_t buf ~pos:0 evts in
-      let value = Bigstring.To_string.sub buf 0 endp in
-      LevelDB.put ?sync db key value
+      let nb_of_evts = List.length evts in
+      let nb_written = Bin_prot.Utils.bin_write_size_header scratch ~pos:0 nb_of_evts in
+      let scratch_shared = Bigstring.sub_shared scratch ~len:nb_written in
+      Bigbuffer.add_bigstring buf scratch_shared;
+      List.iter evts ~f:begin fun e ->
+        let nb_written = bin_write_t scratch ~pos:0 e in
+        let scratch_shared = Bigstring.sub_shared scratch ~len:nb_written in
+        Bigbuffer.add_bigstring buf scratch_shared;
+      end;
+      LevelDB.put ?sync db key @@ Bigbuffer.contents buf
 end
