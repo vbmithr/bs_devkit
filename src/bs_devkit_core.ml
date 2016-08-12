@@ -145,28 +145,12 @@ let eat_exn ?log ?on_exn f =
     | None -> Deferred.unit
     | Some f -> Error.to_exn err |> Monitor.extract_exn |> f
 
-module rec Side : sig
-  type t = Bid | Ask [@@deriving sexp,bin_io]
-  val other : t -> t
-  val of_buyorsell : BuyOrSell.t -> t
-end = struct
-  type t = Bid | Ask [@@deriving sexp,bin_io]
-
-  let other = function Bid -> Ask | Ask -> Bid
-  let of_buyorsell = function BuyOrSell.Buy -> Bid | Sell -> Ask
-end
-and BuyOrSell : sig
+module Side : sig
   type t = Buy | Sell [@@deriving sexp,bin_io]
   val other : t -> t
-  val of_side : Side.t -> t
 end = struct
-  type t =
-    | Buy
-    | Sell
-    [@@deriving sexp,bin_io]
-
+  type t = Buy | Sell [@@deriving sexp,bin_io]
   let other = function Buy -> Sell | Sell -> Buy
-  let of_side = function Side.Bid -> Buy | Ask -> Sell
 end
 
 let vwap side ?(vlimit=Int.max_value) =
@@ -176,7 +160,7 @@ let vwap side ?(vlimit=Int.max_value) =
       let v = Int.min v (vlimit - vol) in
       vwap + p * v, vol + v
   in
-  let fold = Int.Map.(match side with Side.Bid -> fold_right | Ask -> fold) in
+  let fold = Int.Map.(match side with Side.Buy -> fold_right | Sell -> fold) in
   fold ~init:(0, 0) ~f:fold_f
 
 module Cfg = struct
@@ -215,7 +199,7 @@ module DB = struct
 
   type trade = {
     ts: Time_ns.t;
-    side: BuyOrSell.t;
+    side: Side.t;
     price: int; (* in satoshis *)
     qty: int; (* in satoshis *)
   } [@@deriving create, sexp, bin_io]
