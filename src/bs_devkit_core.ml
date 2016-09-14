@@ -9,6 +9,16 @@ module Writer = struct
     write_bigstring ~pos:cs.off ~len:cs.len w cs.buffer
 end
 
+module IS = struct
+  module T = struct
+    type t = Int.t * String.t [@@deriving sexp]
+    let compare = compare
+    let hash = Hashtbl.hash
+  end
+  include T
+  include Hashable.Make (T)
+end
+
 module I64S = struct
   module T = struct
     type t = Int64.t * String.t [@@deriving sexp]
@@ -49,7 +59,7 @@ module RespObj = struct
     | `Float f -> f
     | `Int i -> Float.of_int i
     | `Intlit il -> Float.of_string il
-    | #json -> invalid_arg "float_exn"
+    | json -> invalid_argf "float_exn: got %s" (Yojson.Safe.to_string json) ()
 
   let float_or_null_exn ~default t field =
     match String.Map.find_exn t field with
@@ -57,7 +67,7 @@ module RespObj = struct
     | `Int i -> Float.of_int i
     | `Intlit il -> Float.of_string il
     | `Null -> default
-    | #json -> invalid_arg "float_exn"
+    | json -> invalid_argf "float_exn: got %s" (Yojson.Safe.to_string json) ()
 
   let bool t field =
     Option.bind (String.Map.find t field)
@@ -66,7 +76,7 @@ module RespObj = struct
   let bool_exn t field =
     match String.Map.find_exn t field with
     | `Bool b -> b
-    | #json -> invalid_arg "bool_exn"
+    | json -> invalid_argf "bool_exn: got %s" (Yojson.Safe.to_string json) ()
 
   let string t field =
     Option.bind (String.Map.find t field)
@@ -75,7 +85,21 @@ module RespObj = struct
   let string_exn t field =
     match String.Map.find_exn t field with
     | `String s -> s
-    | #json -> invalid_arg "string_exn"
+    | json -> invalid_argf "string_exn: got %s" (Yojson.Safe.to_string json) ()
+
+  let int t field =
+    Option.bind (String.Map.find t field)
+      (function
+        | `Int i -> Some i
+        | `Intlit s -> Option.try_with (fun () -> Int.of_string s)
+        | #json -> None
+      )
+
+  let int_exn t field =
+    match String.Map.find_exn t field with
+    | `Int i -> i
+    | `Intlit s -> Int.of_string s
+    | json -> invalid_argf "int_exn: got %s" (Yojson.Safe.to_string json) ()
 
   let int64 t field =
     Option.bind (String.Map.find t field)
@@ -89,7 +113,7 @@ module RespObj = struct
     match String.Map.find_exn t field with
     | `Int i -> Int64.of_int i
     | `Intlit s -> Int64.of_string s
-    | #Yojson.Safe.json -> invalid_arg "int64_exn"
+    | json -> invalid_argf "int64_exn: got %s" (Yojson.Safe.to_string json) ()
 
   let of_json = function
     | `Assoc fields ->
