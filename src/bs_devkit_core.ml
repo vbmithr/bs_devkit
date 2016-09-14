@@ -9,26 +9,6 @@ module Writer = struct
     write_bigstring ~pos:cs.off ~len:cs.len w cs.buffer
 end
 
-module IS = struct
-  module T = struct
-    type t = Int.t * String.t [@@deriving sexp]
-    let compare = compare
-    let hash = Hashtbl.hash
-  end
-  include T
-  include Hashable.Make (T)
-end
-
-module I64S = struct
-  module T = struct
-    type t = Int64.t * String.t [@@deriving sexp]
-    let compare = compare
-    let hash = Hashtbl.hash
-  end
-  include T
-  include Hashable.Make (T)
-end
-
 module InetAddr = struct
   module T = struct
     include Socket.Address.Inet
