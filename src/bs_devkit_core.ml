@@ -121,17 +121,28 @@ let add_suffix fn ~suffix =
 
 let loglevel_of_int = function 2 -> `Info | 3 -> `Debug | _ -> `Error
 
-let robust_int_of_float_exn (type t) (module I : Int_intf.S with type t = t) precision f =
-  let s = Printf.sprintf "%.*f" precision f in
-  let i = String.index_exn s '.' in
-  let op = if String.get s 0 = '-' then I.(-) else I.(+) in
-  let a = I.of_string @@ String.sub s 0 i in
-  let b = I.of_string @@ String.sub s (i+1) (String.length s - i - 1) in
-  I.(op (a * (pow (of_int_exn 10) (of_int_exn precision))) b)
+(* Only works when the string represents an positive integer or a
+   positive float with all decimals (including zeros) corresponding to
+   [mult] *)
+let satoshis_of_string ?(mult=100_000_000) fstr =
+  match String.index fstr '.' with
+  | None -> Int.of_string fstr * mult
+  | Some idx ->
+    String.blito ~src:fstr ~dst:fstr ~src_pos:0 ~dst_pos:1 ~src_len:idx ();
+    String.set fstr 0 '0';
+    Int.of_string fstr
 
-let satoshis_of_float_exn = robust_int_of_float_exn (module Int64) 8
-let satoshis_int_of_float_exn = robust_int_of_float_exn (module Int) 8
-let bps_int_of_float_exn = robust_int_of_float_exn (module Int) 4
+let robust_int_of_float_exn precision mult f =
+  let s = Printf.sprintf "%+.*f" precision f in
+  let sign = String.get s 0 in
+  String.set s 0 '0';
+  match sign with
+  | '+' -> satoshis_of_string ~mult s
+  | '-' -> Int.neg @@ satoshis_of_string ~mult s
+  | _ -> invalid_arg "robust_int_of_float_exn: sign"
+
+let satoshis_int_of_float_exn = robust_int_of_float_exn 8 100_000_000
+let bps_int_of_float_exn = robust_int_of_float_exn 4 10_000
 
 let float_of_ts ts = Time_ns.to_int_ns_since_epoch ts |> Float.of_int |> fun date -> date /. 1e9
 let int_of_ts ts = Time_ns.to_int_ns_since_epoch ts / 1_000_000_000
