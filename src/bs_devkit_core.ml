@@ -148,15 +148,11 @@ let float_of_ts ts = Time_ns.to_int_ns_since_epoch ts |> Float.of_int |> fun dat
 let int_of_ts ts = Time_ns.to_int_ns_since_epoch ts / 1_000_000_000
 let int32_of_ts ts = int_of_ts ts |> Int32.of_int_exn
 
-let maybe_debug log k = Printf.ksprintf (fun msg -> Option.iter log ~f:(fun log -> Log.debug log "%s" msg)) k
-let maybe_info log k = Printf.ksprintf (fun msg -> Option.iter log ~f:(fun log -> Log.info log "%s" msg)) k
-let maybe_error log k = Printf.ksprintf (fun msg -> Option.iter log ~f:(fun log -> Log.error log "%s" msg)) k
-
 let eat_exn ?log ?on_exn f =
   Monitor.try_with_or_error f >>= function
   | Ok () -> Deferred.unit
   | Error err ->
-    maybe_error log "%s" Error.(to_string_hum err);
+    Option.iter log ~f:(fun log -> Log.error log "%s" Error.(to_string_hum err));
     match on_exn with
     | None -> Deferred.unit
     | Some f -> Error.to_exn err |> Monitor.extract_exn |> f
