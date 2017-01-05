@@ -1,4 +1,4 @@
-true : bin_annot, safe_string, package(bytes), debug, warn(-40)
+true : bin_annot, package(bytes), debug, warn(-40)
 
 <src> : include
 <test> : include
