@@ -1,5 +1,5 @@
-open Core.Std
-open Async.Std
+open Core
+open Async
 open Dtc
 
 module Writer = struct
@@ -19,7 +19,7 @@ module InetAddr = struct
 end
 
 module RespObj = struct
-  open Core.Std
+  open Core
   open String.Map
 
   type json = Yojson.Safe.json
