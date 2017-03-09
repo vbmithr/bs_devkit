@@ -3,7 +3,6 @@ PKG core
 PKG async
 PKG cohttp.async
 PKG yojson
-PKG uuidm
 PKG leveldb
 PKG dtc
 
