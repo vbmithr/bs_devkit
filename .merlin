@@ -14,3 +14,5 @@ PKG ppx_deriving_yojson
 S src
 S test
 B _build/**
+
+FLG -w -40
