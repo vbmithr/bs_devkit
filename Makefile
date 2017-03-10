@@ -1,5 +1,5 @@
 all:
-	./build lib-byte
+	jbuilder build @install
 
 clean:
-	./build clean
+	rm -rf _build
