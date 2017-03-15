@@ -5,7 +5,6 @@
   ---------------------------------------------------------------------------*)
 open Core
 open Async
-open Dtc
 
 module Writer = struct
   include Writer
@@ -169,7 +168,7 @@ let vwap side ?(vlimit=Int.max_value) =
       let v = Int.min v (vlimit - vol) in
       vwap + p * v, vol + v
   in
-  let fold = Int.Map.(match side with Dtc.Buy -> fold_right | Sell -> fold) in
+  let fold = Int.Map.(match side with `Buy -> fold_right | `Sell -> fold) in
   fold ~init:(0, 0) ~f:fold_f
 
 module Cfg = struct
@@ -188,7 +187,7 @@ module OB = struct
 
   type update = {
     id: int;
-    side: Dtc.side;
+    side: [`Buy | `Sell];
     price: int [@default 0]; (* in satoshis *)
     size: int [@default 0] (* in contracts or in tick size *);
   } [@@deriving sexp, bin_io]
@@ -201,14 +200,14 @@ end
 
 module DB = struct
   type book_entry = {
-    side: Dtc.side;
+    side: [`Buy | `Sell];
     price: int;
     qty: int;
   } [@@deriving sexp, bin_io]
 
   type trade = {
     ts: Time_ns.t;
-    side: Dtc.side;
+    side: [`Buy | `Sell];
     price: int; (* in satoshis *)
     qty: int; (* in satoshis *)
   } [@@deriving sexp, bin_io]
