@@ -16,11 +16,8 @@ depends: [
   "jbuilder" {build}
   "core"
   "async"
-  "ppx_deriving"
-  "ppx_deriving_yojson"
   "ppx_sexp_conv"
   "ppx_bin_prot"
-  "leveldb"
 ]
 depopts: []
 build:[[ "jbuilder" "build" "@install" ]]

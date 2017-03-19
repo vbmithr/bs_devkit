@@ -218,24 +218,6 @@ module DB = struct
     | Trade of trade [@@deriving sexp, bin_io]
 
   type t_list = t list [@@deriving sexp, bin_io]
-
-  let make_store () =
-    let key = String.create 8 in
-    let buf = Bigbuffer.create 128 in
-    let scratch = Bigstring.create 128 in
-    fun ?sync db seq evts ->
-      Bigbuffer.clear buf;
-      Binary_packing.pack_signed_64_int_big_endian ~buf:key ~pos:0 seq;
-      let nb_of_evts = List.length evts |> Bin_prot.Nat0.of_int in
-      let nb_written = Bin_prot.Write.bin_write_nat0 scratch ~pos:0 nb_of_evts in
-      let scratch_shared = Bigstring.sub_shared scratch ~len:nb_written in
-      Bigbuffer.add_bigstring buf scratch_shared;
-      List.iter evts ~f:begin fun e ->
-        let nb_written = bin_write_t scratch ~pos:0 e in
-        let scratch_shared = Bigstring.sub_shared scratch ~len:nb_written in
-        Bigbuffer.add_bigstring buf scratch_shared;
-      end;
-      LevelDB.put ?sync db key @@ Bigbuffer.contents buf
 end
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff

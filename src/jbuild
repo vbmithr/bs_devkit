@@ -3,4 +3,4 @@
   (public_name bs-devkit)
   (modules (bs_devkit))
   (preprocess (pps (ppx_bin_prot ppx_sexp_conv)))
-  (libraries (core async cstruct yojson leveldb))))
+  (libraries (core async cstruct yojson))))
