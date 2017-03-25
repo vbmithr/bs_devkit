@@ -14,10 +14,10 @@ depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
   "jbuilder" {build}
-  "core"
-  "async"
-  "ppx_sexp_conv"
-  "ppx_bin_prot"
+  "core" {>= "114.35+03"}
+  "async" {>= "114.35+03"}
+  "ppx_sexp_conv" {>= "114.35+03"}
+  "ppx_bin_prot" {>= "114.35+03"}
 ]
 depopts: []
 build:[[ "jbuilder" "build" "@install" ]]
