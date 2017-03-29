@@ -6,6 +6,10 @@
 open Core
 open Async
 
+type side = [`Buy | `Sell] [@@deriving sexp, bin_io]
+let pp_side ppf side =
+  Format.fprintf ppf "%s" (match side with `Buy -> "Buy" | `Sell -> "Sell")
+
 module Writer = struct
   include Writer
   let write_cstruct w cs =
@@ -187,7 +191,7 @@ module OB = struct
 
   type update = {
     id: int;
-    side: [`Buy | `Sell];
+    side: side;
     price: int [@default 0]; (* in satoshis *)
     size: int [@default 0] (* in contracts or in tick size *);
   } [@@deriving sexp, bin_io]
@@ -200,22 +204,37 @@ end
 
 module DB = struct
   type book_entry = {
-    side: [`Buy | `Sell];
+    side: side;
     price: int;
     qty: int;
   } [@@deriving sexp, bin_io]
 
+  let pp_book_entry ppf { side ; price ; qty } =
+    let price = price // 100_000_000 in
+    let qty = qty // 100_000_000 in
+    Format.fprintf ppf "%a %.8f %.8f" pp_side side price qty
+
   type trade = {
     ts: Time_ns.t;
-    side: [`Buy | `Sell];
+    side: side;
     price: int; (* in satoshis *)
     qty: int; (* in satoshis *)
   } [@@deriving sexp, bin_io]
+
+  let pp_trade ppf { ts ; side ; price ; qty } =
+    let price = price // 100_000_000 in
+    let qty = qty // 100_000_000 in
+    Format.fprintf ppf "%a %.8f %.8f %a" pp_side side price qty Time_ns.pp ts
 
   type t =
     | BModify of book_entry
     | BRemove of book_entry
     | Trade of trade [@@deriving sexp, bin_io]
+
+  let pp ppf = function
+  | BModify entry -> Format.fprintf ppf "BModify %a" pp_book_entry entry
+  | BRemove entry -> Format.fprintf ppf "BDelete %a" pp_book_entry entry
+  | Trade trade -> Format.fprintf ppf "Trade %a" pp_trade trade
 
   type t_list = t list [@@deriving sexp, bin_io]
 end
