@@ -226,7 +226,7 @@ module DB = struct
     let qty = qty // 100_000_000 in
     Format.fprintf ppf "%a %.8f %.8f %a" pp_side side price qty Time_ns.pp ts
 
-  type t =
+  type entry =
     | BModify of book_entry
     | BRemove of book_entry
     | Trade of trade [@@deriving sexp, bin_io]
@@ -236,7 +236,8 @@ module DB = struct
   | BRemove entry -> Format.fprintf ppf "BDelete %a" pp_book_entry entry
   | Trade trade -> Format.fprintf ppf "Trade %a" pp_trade trade
 
-  type t_list = t list [@@deriving sexp, bin_io]
+  type entry_list = entry list [@@deriving sexp, bin_io]
+  type db = entry list Int.Map.t [@@deriving sexp, bin_io]
 end
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
