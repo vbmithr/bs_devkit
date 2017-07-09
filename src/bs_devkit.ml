@@ -152,9 +152,19 @@ let robust_int_of_float_exn precision mult f =
 let satoshis_int_of_float_exn = robust_int_of_float_exn 8 100_000_000
 let bps_int_of_float_exn = robust_int_of_float_exn 4 10_000
 
-let float_of_ts ts = Time_ns.to_int_ns_since_epoch ts |> Float.of_int |> fun date -> date /. 1e9
 let int_of_ts ts = Time_ns.to_int_ns_since_epoch ts / 1_000_000_000
 let int32_of_ts ts = int_of_ts ts |> Int32.of_int_exn
+
+let seconds_int64_of_ts ts =
+  Time_ns.(to_int_ns_since_epoch ts / 1_000_000_000) |>
+  Int64.of_int
+
+let seconds_int32_of_ts ts =
+  Time_ns.(to_int_ns_since_epoch ts / 1_000_000_000) |>
+  Int32.of_int
+
+let float_of_ts ts =
+  Time_ns.to_int_ns_since_epoch ts // 1_000_000_000
 
 let eat_exn ?log ?on_exn f =
   Monitor.try_with_or_error f >>= function
