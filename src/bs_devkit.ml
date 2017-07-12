@@ -17,15 +17,6 @@ module Writer = struct
     write_bigstring ~pos:cs.off ~len:cs.len w cs.buffer
 end
 
-module InetAddr = struct
-  module T = struct
-    include Socket.Address.Inet
-    let hash = Hashtbl.hash
-  end
-  include T
-  include Hashable.Make (T)
-end
-
 module RespObj = struct
   open Core
   open String.Map
