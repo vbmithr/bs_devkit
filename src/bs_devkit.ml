@@ -10,11 +10,13 @@ type side = [`Buy | `Sell] [@@deriving sexp, bin_io]
 let pp_side ppf side =
   Format.fprintf ppf "%s" (match side with `Buy -> "Buy" | `Sell -> "Sell")
 
-module Writer = struct
-  include Writer
-  let write_cstruct w cs =
-    let open Cstruct in
-    write_bigstring ~pos:cs.off ~len:cs.len w cs.buffer
+module IS = struct
+  module T = struct
+    type t = Int.t * String.t [@@deriving sexp,hash,compare]
+  end
+  include T
+  include Hashable.Make (T)
+  module Set = Set.Make (T)
 end
 
 module RespObj = struct
@@ -240,6 +242,39 @@ module DB = struct
   type entry_list = entry list [@@deriving sexp, bin_io]
   type db = entry list Int.Map.t [@@deriving sexp, bin_io]
 end
+
+let rec loop_log_errors ?log f =
+  let rec inner () =
+    Monitor.try_with_or_error ~name:"loop_log_errors" f >>= function
+    | Ok _ -> Deferred.unit
+    | Error err ->
+        Option.iter log ~f:(fun log -> Log.error log "run: %s" @@ Error.to_string_hum err);
+        inner ()
+  in inner ()
+
+let conduit_server ~tls ~crt_path ~key_path =
+  if tls then
+    Sys.file_exists crt_path >>= fun crt_exists ->
+    Sys.file_exists key_path >>| fun key_exists ->
+    match crt_exists, key_exists with
+    | `Yes, `Yes -> `OpenSSL (`Crt_file_path crt_path, `Key_file_path key_path)
+    | _ -> failwith "TLS crt/key file not found"
+  else
+  return `TCP
+
+let price_display_format_of_ticksize tickSize =
+  if tickSize >=. 1. then `price_display_format_decimal_0
+  else if tickSize =. 1e-1 then `price_display_format_decimal_1
+  else if tickSize =. 1e-2 then `price_display_format_decimal_2
+  else if tickSize =. 1e-3 then `price_display_format_decimal_3
+  else if tickSize =. 1e-4 then `price_display_format_decimal_4
+  else if tickSize =. 1e-5 then `price_display_format_decimal_5
+  else if tickSize =. 1e-6 then `price_display_format_decimal_6
+  else if tickSize =. 1e-7 then `price_display_format_decimal_7
+  else if tickSize =. 1e-8 then `price_display_format_decimal_8
+  else if tickSize =. 1e-9 then `price_display_format_decimal_9
+  else invalid_argf "price_display_format_of_ticksize: %f" tickSize ()
+
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
 
