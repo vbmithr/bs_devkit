@@ -106,6 +106,10 @@ module RespObj = struct
 
   let to_json o = `Assoc (String.Map.to_alist o)
 
+  let to_string o = Yojson.Safe.to_string (to_json o)
+  let pp ppf o =
+    Format.fprintf ppf "%s" (Yojson.Safe.to_string (to_json o))
+
   let merge t t' = String.Map.merge t t'
       ~f:(fun ~key:_ -> function
           | `Both (v, v') -> Some v'
