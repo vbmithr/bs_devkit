@@ -10,15 +10,6 @@ type side = [`Buy | `Sell] [@@deriving sexp, bin_io]
 let pp_side ppf side =
   Format.fprintf ppf "%s" (match side with `Buy -> "Buy" | `Sell -> "Sell")
 
-module IS = struct
-  module T = struct
-    type t = Int.t * String.t [@@deriving sexp,hash,compare]
-  end
-  include T
-  include Hashable.Make (T)
-  module Set = Set.Make (T)
-end
-
 module RespObj = struct
   open Core
   open String.Map
