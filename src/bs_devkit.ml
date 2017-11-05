@@ -159,17 +159,24 @@ let conduit_server ~tls ~crt_path ~key_path =
   return `TCP
 
 let price_display_format_of_ticksize tickSize =
-  if tickSize >=. 1. then `price_display_format_decimal_0
-  else if tickSize =. 1e-1 then `price_display_format_decimal_1
-  else if tickSize =. 1e-2 then `price_display_format_decimal_2
-  else if tickSize =. 1e-3 then `price_display_format_decimal_3
-  else if tickSize =. 1e-4 then `price_display_format_decimal_4
-  else if tickSize =. 1e-5 then `price_display_format_decimal_5
-  else if tickSize =. 1e-6 then `price_display_format_decimal_6
-  else if tickSize =. 1e-7 then `price_display_format_decimal_7
-  else if tickSize =. 1e-8 then `price_display_format_decimal_8
-  else if tickSize =. 1e-9 then `price_display_format_decimal_9
-  else invalid_argf "price_display_format_of_ticksize: %f" tickSize ()
+  (**) if tickSize =. (1//2) then `price_display_format_denominator_2
+  else if tickSize =. (1//4) then `price_display_format_denominator_4
+  else if tickSize =. (1//8) then `price_display_format_denominator_8
+  else if tickSize =. (1//16) then `price_display_format_denominator_16
+  else if tickSize =. (1//32) then `price_display_format_denominator_32
+  else if tickSize =. (1//64) then `price_display_format_denominator_64
+  else if tickSize =. (1//128) then `price_display_format_denominator_128
+  else if tickSize =. (1//256) then `price_display_format_denominator_256
+  else if tickSize >=. 1. then `price_display_format_decimal_0
+  else if tickSize >=. 1e-1 then `price_display_format_decimal_1
+  else if tickSize >=. 1e-2 then `price_display_format_decimal_2
+  else if tickSize >=. 1e-3 then `price_display_format_decimal_3
+  else if tickSize >=. 1e-4 then `price_display_format_decimal_4
+  else if tickSize >=. 1e-5 then `price_display_format_decimal_5
+  else if tickSize >=. 1e-6 then `price_display_format_decimal_6
+  else if tickSize >=. 1e-7 then `price_display_format_decimal_7
+  else if tickSize >=. 1e-8 then `price_display_format_decimal_8
+  else `price_display_format_decimal_9
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
