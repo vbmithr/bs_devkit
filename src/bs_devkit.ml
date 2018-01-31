@@ -22,20 +22,22 @@ let loglevel_of_int = function 2 -> `Info | 3 -> `Debug | _ -> `Error
    positive float with all decimals (including zeros) corresponding to
    [mult] *)
 let satoshis_of_string ?(mult=100_000_000) fstr =
+  let fstr_buf = Bytes.of_string fstr in
   match String.index fstr '.' with
   | None -> Int.of_string fstr * mult
   | Some idx ->
-    String.blito ~src:fstr ~dst:fstr ~src_pos:0 ~dst_pos:1 ~src_len:idx ();
-    String.set fstr 0 '0';
-    Int.of_string fstr
+    Bytes.blito ~src:fstr_buf ~dst:fstr_buf ~src_pos:0 ~dst_pos:1 ~src_len:idx ();
+    Bytes.set fstr_buf 0 '0';
+    Int.of_string (Bytes.unsafe_to_string fstr_buf)
 
 let robust_int_of_float_exn precision mult f =
-  let s = Printf.sprintf "%+.*f" precision f in
-  let sign = String.get s 0 in
-  String.set s 0 '0';
+  let s = Printf.sprintf "%+.*f" precision f |>
+          Bytes.unsafe_of_string_promise_no_mutation in
+  let sign = Bytes.get s 0 in
+  Bytes.set s 0 '0';
   match sign with
-  | '+' -> satoshis_of_string ~mult s
-  | '-' -> Int.neg @@ satoshis_of_string ~mult s
+  | '+' -> satoshis_of_string ~mult (Bytes.unsafe_to_string s)
+  | '-' -> Int.neg @@ satoshis_of_string ~mult (Bytes.unsafe_to_string s)
   | _ -> invalid_arg "robust_int_of_float_exn: sign"
 
 let satoshis_int_of_float_exn = robust_int_of_float_exn 8 100_000_000
