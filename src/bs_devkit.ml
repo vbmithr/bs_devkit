@@ -28,7 +28,7 @@ let satoshis_of_string ?(mult=100_000_000) fstr =
   | Some idx ->
     Bytes.blito ~src:fstr_buf ~dst:fstr_buf ~src_pos:0 ~dst_pos:1 ~src_len:idx ();
     Bytes.set fstr_buf 0 '0';
-    Int.of_string (Bytes.unsafe_to_string fstr_buf)
+    Int.of_string (Bytes.unsafe_to_string ~no_mutation_while_string_reachable:fstr_buf)
 
 let robust_int_of_float_exn precision mult f =
   let s = Printf.sprintf "%+.*f" precision f |>
@@ -36,8 +36,8 @@ let robust_int_of_float_exn precision mult f =
   let sign = Bytes.get s 0 in
   Bytes.set s 0 '0';
   match sign with
-  | '+' -> satoshis_of_string ~mult (Bytes.unsafe_to_string s)
-  | '-' -> Int.neg @@ satoshis_of_string ~mult (Bytes.unsafe_to_string s)
+  | '+' -> satoshis_of_string ~mult (Bytes.unsafe_to_string ~no_mutation_while_string_reachable:s)
+  | '-' -> Int.neg @@ satoshis_of_string ~mult (Bytes.unsafe_to_string ~no_mutation_while_string_reachable:s)
   | _ -> invalid_arg "robust_int_of_float_exn: sign"
 
 let satoshis_int_of_float_exn = robust_int_of_float_exn 8 100_000_000
@@ -52,6 +52,9 @@ let seconds_int32_of_ts ts =
 
 let seconds_float_of_ts ts =
   Int63.to_float (seconds_int63_of_ts ts)
+
+let seconds_int64_of_ts ts =
+  Int63.to_int64 (seconds_int63_of_ts ts)
 
 let eat_exn ?log ?on_exn f =
   Monitor.try_with_or_error f >>= function
@@ -137,7 +140,7 @@ module DB = struct
   type db = entry list Int.Map.t [@@deriving sexp, bin_io]
 end
 
-let rec loop_log_errors ?log f =
+let loop_log_errors ?log f =
   let rec inner () =
     Monitor.try_with_or_error ~name:"loop_log_errors" f >>= function
     | Ok _ -> Deferred.unit

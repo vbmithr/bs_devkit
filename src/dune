@@ -1,0 +1,6 @@
+(library
+ (name        bs_devkit)
+ (public_name bs-devkit)
+ (modules bs_devkit)
+ (preprocess (pps ppx_bin_prot ppx_sexp_conv ppx_hash ppx_compare))
+ (libraries core async cstruct yojson))
