@@ -179,6 +179,19 @@ let price_display_format_of_ticksize tickSize =
   else if tickSize >=. 1e-8 then `price_display_format_decimal_8
   else `price_display_format_decimal_9
 
+module Arg_type = struct
+  let span = Command.Arg_type.create Time_ns.Span.of_string
+  let loglevel = Command.Arg_type.create begin fun s ->
+      match Logs.level_of_string s with
+      | Ok (Some level) -> level
+      | Ok None -> Logs.App
+      | Error (`Msg msg) -> failwithf "Unknown level %s" msg ()
+    end
+end
+
+let sexp_of_loglevel ll =
+  sexp_of_string (Logs.level_to_string (Some ll))
+
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
 
