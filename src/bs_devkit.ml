@@ -180,6 +180,7 @@ let price_display_format_of_ticksize tickSize =
   else `price_display_format_decimal_9
 
 module Arg_type = struct
+  let uri = Command.Arg_type.create Uri.of_string
   let span = Command.Arg_type.create Time_ns.Span.of_string
   let loglevel = Command.Arg_type.create begin fun s ->
       match Logs.level_of_string s with
