@@ -84,6 +84,27 @@ module Cfg = struct
   } [@@deriving sexp]
 
   type t = (string * cfg) list [@@deriving sexp]
+
+  let pp ppf t =
+    Format.fprintf ppf "%a" Sexp.pp (sexp_of_t t)
+
+  let of_file_exn fn =
+    let content = Stdio.In_channel.read_all fn in
+    match Sexp.of_string_conv content t_of_sexp with
+    | `Error (exn, _) -> raise exn
+    | `Result v -> v
+
+  let arg =
+    Command.Arg_type.file of_file_exn
+
+  let default_cfg =
+    Filename.concat (Option.value_exn (Sys.getenv "HOME")) ".virtu"
+
+  let param ?(default=default_cfg) () =
+    let open Command.Param in
+    flag_optional_with_default_doc "cfg" arg sexp_of_t
+      ~default:(match of_file_exn default with _ -> [])
+      ~doc:"FILE Configuration file for exchange API"
 end
 
 module OB = struct
