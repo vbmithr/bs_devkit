@@ -182,12 +182,6 @@ let price_display_format_of_ticksize tickSize =
 module Arg_type = struct
   let uri = Command.Arg_type.create Uri.of_string
   let span = Command.Arg_type.create Time_ns.Span.of_string
-  let loglevel = Command.Arg_type.create begin fun s ->
-      match Logs.level_of_string s with
-      | Ok (Some level) -> level
-      | Ok None -> Logs.App
-      | Error (`Msg msg) -> failwithf "Unknown level %s" msg ()
-    end
 end
 
 let sexp_of_loglevel ll =
