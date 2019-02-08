@@ -208,26 +208,6 @@ end
 let sexp_of_loglevel ll =
   sexp_of_string (Logs.level_to_string (Some ll))
 
-let addr_of_uri uri : Conduit_async.V2.addr Deferred.t =
-  let host, service =
-  match Uri.host uri, Uri.port uri, Uri_services.tcp_port_of_uri uri with
-  | Some h, Some p, _ -> h, string_of_int p
-  | Some h, None, Some p -> h, string_of_int p
-  | Some h, None, None -> h, ""
-  | _ -> invalid_arg "async_of_uri: no host in URL" in
-  Unix.Addr_info.get ~host ~service [] >>| function
-  | [] -> failwith "getaddrinfo: unable to resolve"
-  | { ai_addr; _ } :: _ ->
-    match Uri.scheme uri, ai_addr with
-    | _, ADDR_UNIX path -> `Unix_domain_socket path
-    | Some "https", ADDR_INET (h, p)
-    | Some "wss", ADDR_INET (h, p) ->
-      let h = Ipaddr_unix.of_inet_addr h in
-      `OpenSSL (h, p, Conduit_async.V2.Ssl.Config.create ())
-    | _, ADDR_INET (h, p) ->
-      let h = Ipaddr_unix.of_inet_addr h in
-      `TCP (h, p)
-
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
 
