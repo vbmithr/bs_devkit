@@ -103,7 +103,7 @@ module Cfg = struct
   let param ?(default=default_cfg) () =
     let open Command.Param in
     flag_optional_with_default_doc "cfg" arg sexp_of_t
-      ~default:(match of_file_exn default with _ -> [])
+      ~default:(try of_file_exn default with _ -> [])
       ~doc:"FILE Configuration file for exchange API"
 end
 
