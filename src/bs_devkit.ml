@@ -94,8 +94,7 @@ module Cfg = struct
     | `Error (exn, _) -> raise exn
     | `Result v -> v
 
-  let arg =
-    Command.Arg_type.file of_file_exn
+  let arg = Command.Arg_type.create of_file_exn
 
   let default_cfg =
     Filename.concat (Option.value_exn (Sys.getenv "HOME")) ".virtu"
