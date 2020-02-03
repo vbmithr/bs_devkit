@@ -180,6 +180,7 @@ let conduit_server ~tls ~crt_path ~key_path =
   return `TCP
 
 let price_display_format_of_ticksize tickSize =
+  let open Float in
   (**) if tickSize =. (1//2) then `price_display_format_denominator_2
   else if tickSize =. (1//4) then `price_display_format_denominator_4
   else if tickSize =. (1//8) then `price_display_format_denominator_8
